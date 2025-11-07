@@ -31,6 +31,14 @@ pub fn main() -> Nil {
 }
 
 fn run(task: sim_client.Task, num_clients: Int, run_time: Int) -> Nil {
+  // Calculate Zipf distribution for board popularity
+
+  let inverse_h_n = 1.0 /. nth_harmonic(0.0, sim_client.num_boards)
+  let pmf =
+    list.range(1, sim_client.num_boards)
+    |> list.map(fn(k) { inverse_h_n *. 1.0 /. int.to_float(k) })
+  let board_zipf_cdf = list.scan(pmf, 0.0, fn(sum, p) { sum +. p })
+
   // Initialize engine and admin user to create boards for clients to post in
 
   let engine_name = process.new_name("engine")
@@ -57,7 +65,16 @@ fn run(task: sim_client.Task, num_clients: Int, run_time: Int) -> Nil {
   // Spawn/start clients and wait for the specified run time
 
   let sim = process.new_subject()
-  let clients = spawn_clients([], sim, engine, task, num_clients)
+  let clients =
+    spawn_clients(
+      [],
+      sim,
+      engine,
+      task,
+      board_zipf_cdf,
+      num_clients,
+      num_clients,
+    )
   list.each(clients, process.send(_, sim_client.Start))
   process.sleep(run_time * 1000)
 
@@ -76,17 +93,30 @@ fn spawn_clients(
   sim: Subject(#(Int, Int)),
   engine: Subject(engine.Message),
   task: sim_client.Task,
+  board_zipf_cdf: List(Float),
+  num_clients: Int,
   i: Int,
 ) -> List(Subject(sim_client.Message)) {
   case i > 0 {
-    True ->
+    True -> {
+      let new_client =
+        sim_client.new(
+          sim,
+          engine,
+          task,
+          board_zipf_cdf,
+          random_zipf_p(num_clients),
+        )
       spawn_clients(
-        [sim_client.new(sim, engine, task), ..clients],
+        [new_client, ..clients],
         sim,
         engine,
         task,
+        board_zipf_cdf,
+        num_clients,
         i - 1,
       )
+    }
     False -> clients
   }
 }
@@ -103,4 +133,16 @@ fn sum_posts_comments(
     }
     False -> sum
   }
+}
+
+fn nth_harmonic(sum: Float, n: Int) {
+  case n > 0 {
+    True -> nth_harmonic(sum +. 1.0 /. int.to_float(n), n - 1)
+    False -> sum
+  }
+}
+
+fn random_zipf_p(n: Int) -> Float {
+  let inverse_h_n = 1.0 /. nth_harmonic(0.0, n)
+  inverse_h_n *. 1.0 /. int.to_float(int.random(n) + 1)
 }

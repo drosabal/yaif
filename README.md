@@ -26,7 +26,7 @@ gleam run -m sim {posts|posts_comments} <n> <t>
 - n is the number of clients to simulate
 - t is the time to run the simulation, in seconds
 
-Running posts will simulate clients that create posts at frequencies following a Zipf distribution. The boards on which posts get made are also chosen according to a second, independent Zipf distribution.
+Running posts will simulate clients that create posts at frequencies following a Zipf distribution. The boards on which posts get made are also chosen according to a second, independent Zipf distribution. (Some clients post more frequently than others, some boards are more popular than others.)
 
 Running posts_comments does the same, except clients will randomly choose to post or comment. If they comment, a random post from the boards latest feed will be chosen and commented on.
 

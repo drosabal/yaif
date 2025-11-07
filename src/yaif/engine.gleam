@@ -70,6 +70,15 @@ pub type Request {
 }
 
 /// Structured response data to be parsed as JSON or Success/Error
+/// 
+/// BoardFeed: List of posts on a board
+/// ThreadFeed: List of comments on a post/comment
+/// DirectMessages: List of messages between two users
+/// AuthToken: Token used to authenticate a user
+/// Success: Indicate request was processed successfully
+/// 
+/// ErrorInvalidToken: Provided token is invalid
+/// ErrorAlreadyExists: Provided resource cannot have a duplicate (user, board, etc.)
 pub type Response {
   BoardFeed(posts: List(Post))
   ThreadFeed(posts: List(Comment))
