@@ -1,5 +1,7 @@
 import gleam/io
 
 pub fn main() -> Nil {
-  io.println("Hello from yaif!")
+  io.println(
+    "To run simulator: gleam run -m sim {posts|posts_comments} <n> <t>",
+  )
 }
