@@ -14,7 +14,7 @@ const init_timeout = 1000
 const freq_scale = 1
 
 // Number of boards to simulate
-pub const num_boards = 10
+pub const num_boards = 100
 
 pub type Task {
   Post

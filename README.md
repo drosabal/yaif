@@ -9,7 +9,7 @@ YAIF (Yet Another Internet Forum) is a platform where users can create and join 
 - PostgreSQL
 - Erlang/OTP 26 or higher
 
-Postgresql must be configured with the following:
+PostgreSQL must be configured with the following:
 - User: postgres
 - Password: postgres
 - Port: 5432
