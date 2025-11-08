@@ -1,5 +1,6 @@
 import argv
 import gleam/erlang/process.{type Subject}
+import gleam/float
 import gleam/int
 import gleam/io
 import gleam/list
@@ -66,15 +67,7 @@ fn run(task: sim_client.Task, num_clients: Int, run_time: Int) -> Nil {
 
   let sim = process.new_subject()
   let clients =
-    spawn_clients(
-      [],
-      sim,
-      engine,
-      task,
-      board_zipf_cdf,
-      num_clients,
-      num_clients,
-    )
+    spawn_clients([], sim, engine, task, board_zipf_cdf, num_clients)
   list.each(clients, process.send(_, sim_client.Start))
   process.sleep(run_time * 1000)
 
@@ -94,26 +87,18 @@ fn spawn_clients(
   engine: Subject(engine.Message),
   task: sim_client.Task,
   board_zipf_cdf: List(Float),
-  num_clients: Int,
   i: Int,
 ) -> List(Subject(sim_client.Message)) {
   case i > 0 {
     True -> {
       let new_client =
-        sim_client.new(
-          sim,
-          engine,
-          task,
-          board_zipf_cdf,
-          random_zipf_p(num_clients),
-        )
+        sim_client.new(sim, engine, task, board_zipf_cdf, random_freq_p())
       spawn_clients(
         [new_client, ..clients],
         sim,
         engine,
         task,
         board_zipf_cdf,
-        num_clients,
         i - 1,
       )
     }
@@ -142,7 +127,7 @@ fn nth_harmonic(sum: Float, n: Int) {
   }
 }
 
-fn random_zipf_p(n: Int) -> Float {
-  let inverse_h_n = 1.0 /. nth_harmonic(0.0, n)
-  inverse_h_n *. 1.0 /. int.to_float(int.random(n) + 1)
+// Using 0.1 * Uniform(0, 1)
+fn random_freq_p() -> Float {
+  0.1 *. float.random()
 }

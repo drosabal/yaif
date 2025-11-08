@@ -10,7 +10,7 @@ import yaif/engine
 const init_timeout = 1000
 
 // Post/comment frequency scale factor in seconds
-// Every x seconds, the client will post/comment with probability freq_zipf_p
+// Every x seconds, the client will post/comment with probability freq_p
 const freq_scale = 1
 
 // Number of boards to simulate
@@ -36,7 +36,7 @@ type State {
     client: process.Pid,
     task: Task,
     board_zipf_cdf: List(Float),
-    freq_zipf_p: Float,
+    freq_p: Float,
     num_posts: Int,
     num_comments: Int,
   )
@@ -47,7 +47,7 @@ pub fn new(
   engine: Subject(engine.Message),
   task: Task,
   board_zipf_cdf: List(Float),
-  freq_zipf_p: Float,
+  freq_p: Float,
 ) -> Subject(Message) {
   let assert Ok(started) =
     actor.new_with_initialiser(init_timeout, fn(self: Subject(Message)) {
@@ -59,7 +59,7 @@ pub fn new(
           process.self(),
           task,
           board_zipf_cdf,
-          freq_zipf_p,
+          freq_p,
           0,
           0,
         )
@@ -80,7 +80,7 @@ fn handle_message(state: State, message: Message) -> actor.Next(State, Message) 
   let client = state.client
   let task = state.task
   let board_zipf_cdf = state.board_zipf_cdf
-  let freq_zipf_p = state.freq_zipf_p
+  let freq_p = state.freq_p
   let num_posts = state.num_posts
   let num_comments = state.num_comments
 
@@ -94,7 +94,7 @@ fn handle_message(state: State, message: Message) -> actor.Next(State, Message) 
             self,
             task,
             board_zipf_cdf,
-            freq_zipf_p,
+            freq_p,
           )
         })
       actor.continue(State(..state, client:))
@@ -124,11 +124,11 @@ fn client_process(
   parent: Subject(Message),
   task: Task,
   board_zipf_cdf: List(Float),
-  freq_zipf_p: Float,
+  freq_p: Float,
 ) -> Nil {
   case task {
     Post -> {
-      let will_act = float.random() <. freq_zipf_p
+      let will_act = float.random() <. freq_p
       case will_act {
         True -> {
           let board = sample_board(board_zipf_cdf, float.random(), 0)
@@ -155,7 +155,7 @@ fn client_process(
   }
 
   process.sleep(freq_scale * 1000)
-  client_process(self, engine, parent, task, board_zipf_cdf, freq_zipf_p)
+  client_process(self, engine, parent, task, board_zipf_cdf, freq_p)
 }
 
 fn sample_board(board_zipf_cdf: List(Float), u: Float, i: Int) -> Int {
